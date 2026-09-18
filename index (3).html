@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ReturnGuard AI - Return Request</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .container {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            max-width: 600px;
+            width: 100%;
+            padding: 40px;
+        }
+
+        h1 {
+            color: #2d3748;
+            margin-bottom: 10px;
+            font-size: 28px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .subtitle {
+            color: #718096;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            color: #2d3748;
+            font-weight: 600;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        input, textarea, select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 15px;
+            font-family: inherit;
+        }
+
+        input:focus, textarea:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        .file-upload {
+            border: 2px dashed #cbd5e0;
+            border-radius: 8px;
+            padding: 30px;
+            text-align: center;
+            cursor: pointer;
+            background: #f7fafc;
+        }
+
+        .file-upload:hover {
+            border-color: #667eea;
+        }
+
+        button {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        button:hover {
+            opacity: 0.9;
+        }
+
+        .success {
+            background: #c6f6d5;
+            color: #22543d;
+            padding: 16px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .required { color: #e53e3e; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🛡️ ReturnGuard AI</h1>
+        <p class="subtitle">Submit your return request. AI will review and respond within 24 hours.</p>
+
+        <div class="success" id="success">
+            ✅ Request submitted! Check your email for updates.
+        </div>
+
+        <form id="returnForm" action="https://formspree.io/f/{{form_id}}" method="POST" enctype="multipart/form-data">
+            <div class="form-group">
+                <label>Order ID <span class="required">*</span></label>
+                <input type="text" name="order_id" placeholder="ORD-2025-001" required>
+            </div>
+
+            <div class="form-group">
+                <label>Your Email <span class="required">*</span></label>
+                <input type="email" name="customer_email" placeholder="you@email.com" required>
+            </div>
+
+            <div class="form-group">
+                <label>Your Name <span class="required">*</span></label>
+                <input type="text" name="customer_name" placeholder="John Doe" required>
+            </div>
+
+            <div class="form-group">
+                <label>Return Reason <span class="required">*</span></label>
+                <select name="reason" required>
+                    <option value="">Select reason...</option>
+                    <option value="damaged">Arrived damaged/broken</option>
+                    <option value="defective">Defective</option>
+                    <option value="wrong-item">Wrong item</option>
+                    <option value="not-as-described">Not as described</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Description <span class="required">*</span></label>
+                <textarea name="description" placeholder="Describe the issue in detail..." required minlength="20"></textarea>
+            </div>
+
+            <div class="form-group">
+                <label>Upload Photo <span class="required">*</span></label>
+                <input type="file" name="photo" accept="image/*" required>
+            </div>
+
+            <button type="submit">Submit Return Request</button>
+        </form>
+    </div>
+
+    <script>
+        document.getElementById('returnForm').addEventListener('submit', function(e) {
+            setTimeout(() => {
+                document.getElementById('success').style.display = 'block';
+                this.reset();
+            }, 1000);
+        });
+    </script>
+</body>
+</html>
