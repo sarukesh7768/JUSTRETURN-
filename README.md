@@ -1,4 +1,4 @@
-# 🛡️ JustReturn AI (ReturnGuard AI)
+# 🛡️ JustReturn AI 
 > **Automated E-Commerce Return Processing with AI-Powered Fraud Detection**  
 > *Built for Hackathon 2025*
 
@@ -42,10 +42,10 @@
 
 ### Option 1: Deploy on Vercel (Full Stack Python + Static UI) — Recommended
 1. Push this repository to **GitHub**.
-2. Go to [Vercel Dashboard](https://vercel.com) and click **"Add New Project"**.
+2. Go to [Vercel Dashboard](https://vercel.com) and click **"https://agent-6aad15475ecec80e02--glowing-baklava-a5f9d9.netlify.app"**.
 3. Select your GitHub repository.
 4. Leave framework preset as **Other** (Vercel automatically detects `vercel.json` and Python functions in `api/index.py`).
-5. Click **Deploy**. Your app will be live with a URL like `https://justreturn-ai.vercel.app`!
+5. Click **Deploy**. Your app will be live with a URL like `[https://justreturn-ai.vercel.app](https://agent-6aad15475ecec80e02--glowing-baklava-a5f9d9.netlify.app)`!
 
 ### Option 2: Deploy on Netlify (Static UI)
 1. Push this repository to **GitHub**.
