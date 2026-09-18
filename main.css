@@ -1,0 +1,242 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap');
+
+:root {
+  /* Colors */
+  --bg-primary: #0a0e27;
+  --bg-darkest: #060912;
+  --surface: rgba(15, 20, 40, 0.7);
+  --primary: #00d4ff;
+  --secondary: #7b2ff7;
+  --tertiary: #ff006e;
+  
+  /* Status Colors */
+  --warning: #ffd60a;
+  --success: #00e676;
+  --danger: #ff1744;
+  --info: #00d4ff;
+
+  /* Text Colors */
+  --text-primary: #ffffff;
+  --text-secondary: rgba(255, 255, 255, 0.7);
+  --text-muted: rgba(255, 255, 255, 0.4);
+
+  /* Gradients */
+  --gradient-primary: linear-gradient(135deg, #00d4ff, #7b2ff7);
+  --gradient-accent: linear-gradient(135deg, #ff006e, #ffd60a);
+  --gradient-shimmer: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+  
+  /* Typography */
+  --font-body: 'Inter', sans-serif;
+  --font-heading: 'Outfit', sans-serif;
+
+  /* Border Radius */
+  --radius-card: 12px;
+  --radius-panel: 20px;
+  --radius-pill: 9999px;
+
+  /* Glassmorphism */
+  --glass-bg: rgba(15, 20, 40, 0.6);
+  --glass-border: 1px solid rgba(255, 255, 255, 0.1);
+  --glass-blur: blur(20px);
+  --glass-saturate: saturate(180%);
+}
+
+/* Reset / Normalize */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  line-height: 1.6;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: var(--bg-darkest);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--primary);
+  border-radius: var(--radius-pill);
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--secondary);
+}
+
+/* Typography Classes */
+h1, h2, h3, h4, h5, h6,
+.heading-xl, .heading-lg, .heading-md, .heading-sm {
+  font-family: var(--font-heading);
+  font-weight: 700;
+  line-height: 1.2;
+  margin-bottom: 0.5em;
+  color: var(--text-primary);
+}
+
+.heading-xl { font-size: clamp(3rem, 5vw, 4.5rem); font-weight: 800; }
+.heading-lg { font-size: clamp(2rem, 4vw, 3rem); font-weight: 700; }
+.heading-md { font-size: clamp(1.5rem, 3vw, 2.25rem); font-weight: 600; }
+.heading-sm { font-size: clamp(1.25rem, 2vw, 1.5rem); font-weight: 600; }
+
+.body-text {
+  font-size: 1rem;
+  color: var(--text-secondary);
+}
+
+.caption {
+  font-size: 0.875rem;
+  color: var(--text-muted);
+}
+
+/* Glass Utilities */
+.glass-card, .glass-panel, .glass-button, .glass-input {
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur) var(--glass-saturate);
+  -webkit-backdrop-filter: var(--glass-blur) var(--glass-saturate);
+  border: var(--glass-border);
+}
+
+.glass-card {
+  border-radius: var(--radius-card);
+  padding: 24px;
+}
+
+.glass-panel {
+  border-radius: var(--radius-panel);
+  padding: 40px;
+}
+
+.glass-button {
+  border-radius: var(--radius-pill);
+  padding: 12px 24px;
+  cursor: pointer;
+}
+
+.glass-input {
+  border-radius: var(--radius-card);
+  padding: 14px 18px;
+}
+
+/* Containers / Grid */
+.container {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+.grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 24px; }
+.grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+.grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; }
+
+/* Status Badges */
+.badge-success, .badge-warning, .badge-danger, .badge-info {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 12px;
+  border-radius: var(--radius-pill);
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.badge-success { background: rgba(0, 230, 118, 0.1); color: var(--success); border: 1px solid rgba(0, 230, 118, 0.2); }
+.badge-warning { background: rgba(255, 214, 10, 0.1); color: var(--warning); border: 1px solid rgba(255, 214, 10, 0.2); }
+.badge-danger { background: rgba(255, 23, 68, 0.1); color: var(--danger); border: 1px solid rgba(255, 23, 68, 0.2); }
+.badge-info { background: rgba(0, 212, 255, 0.1); color: var(--info); border: 1px solid rgba(0, 212, 255, 0.2); }
+
+/* Buttons */
+.btn-primary, .btn-secondary, .btn-outline {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 14px 28px;
+  border-radius: var(--radius-pill);
+  font-family: var(--font-heading);
+  font-weight: 600;
+  font-size: 1rem;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: none;
+}
+
+.btn-primary {
+  background: var(--gradient-primary);
+  color: white;
+  box-shadow: 0 4px 15px rgba(0, 212, 255, 0.3);
+}
+.btn-primary:hover {
+  box-shadow: 0 6px 20px rgba(0, 212, 255, 0.5);
+  transform: translateY(-2px);
+}
+
+.btn-secondary {
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  border: var(--glass-border);
+  color: var(--text-primary);
+}
+.btn-secondary:hover {
+  background: rgba(255, 255, 255, 0.1);
+  transform: translateY(-2px);
+}
+
+.btn-outline {
+  background: transparent;
+  border: 1px solid var(--primary);
+  color: var(--primary);
+}
+.btn-outline:hover {
+  background: rgba(0, 212, 255, 0.1);
+  transform: translateY(-2px);
+}
+
+/* Sections */
+.section {
+  padding: 100px 0;
+  position: relative;
+}
+
+.section-title {
+  text-align: center;
+  margin-bottom: 16px;
+}
+
+.section-subtitle {
+  text-align: center;
+  color: var(--text-secondary);
+  max-width: 600px;
+  margin: 0 auto 60px auto;
+  font-size: 1.125rem;
+}
+
+/* Breakpoints */
+@media (max-width: 1200px) {
+  .grid-4 { grid-template-columns: repeat(3, 1fr); }
+}
+@media (max-width: 1024px) {
+  .grid-4 { grid-template-columns: repeat(2, 1fr); }
+  .grid-3 { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 768px) {
+  .grid-4, .grid-3, .grid-2 { grid-template-columns: 1fr; }
+  .section { padding: 60px 0; }
+  .section-subtitle { margin-bottom: 40px; }
+}

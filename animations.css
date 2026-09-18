@@ -1,0 +1,139 @@
+/* Keyframes */
+
+@keyframes float {
+  0% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+  100% { transform: translateY(0); }
+}
+
+@keyframes pulse-glow {
+  0% { opacity: 0.8; transform: scale(1); box-shadow: 0 0 10px rgba(0, 212, 255, 0.2); }
+  50% { opacity: 1; transform: scale(1.05); box-shadow: 0 0 20px rgba(0, 212, 255, 0.6); }
+  100% { opacity: 0.8; transform: scale(1); box-shadow: 0 0 10px rgba(0, 212, 255, 0.2); }
+}
+
+@keyframes shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+@keyframes slide-up {
+  0% { transform: translateY(30px); opacity: 0; }
+  100% { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes slide-in-left {
+  0% { transform: translateX(-30px); opacity: 0; }
+  100% { transform: translateX(0); opacity: 1; }
+}
+
+@keyframes slide-in-right {
+  0% { transform: translateX(30px); opacity: 0; }
+  100% { transform: translateX(0); opacity: 1; }
+}
+
+@keyframes rotate-slow {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@keyframes particle-drift {
+  0% { transform: translate(0, 0); }
+  25% { transform: translate(15px, -15px); }
+  50% { transform: translate(30px, 5px); }
+  75% { transform: translate(10px, 20px); }
+  100% { transform: translate(0, 0); }
+}
+
+@keyframes gradient-shift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+@keyframes typing-cursor {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+@keyframes counter-glow {
+  0% { text-shadow: 0 0 10px rgba(0, 212, 255, 0.2); }
+  50% { text-shadow: 0 0 25px rgba(0, 212, 255, 0.8); }
+  100% { text-shadow: 0 0 10px rgba(0, 212, 255, 0.2); }
+}
+
+/* Hover Utilities */
+.hover-lift {
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+.hover-lift:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.3);
+}
+
+.hover-glow {
+  transition: box-shadow 0.3s ease;
+}
+.hover-glow:hover {
+  box-shadow: 0 0 20px rgba(0, 212, 255, 0.5);
+}
+
+.hover-scale {
+  transition: transform 0.3s ease;
+}
+.hover-scale:hover {
+  transform: scale(1.05);
+}
+
+/* Card Tilt 3D (requires JS for full effect, but provides baseline CSS) */
+.card-tilt-3d {
+  perspective: 1000px;
+  transform-style: preserve-3d;
+  transition: transform 0.1s ease;
+}
+
+/* Stagger Fade In */
+.stagger-fade-in > * {
+  opacity: 0;
+  animation: slide-up 0.5s ease forwards;
+}
+.stagger-fade-in > *:nth-child(1) { animation-delay: 0.1s; }
+.stagger-fade-in > *:nth-child(2) { animation-delay: 0.2s; }
+.stagger-fade-in > *:nth-child(3) { animation-delay: 0.3s; }
+.stagger-fade-in > *:nth-child(4) { animation-delay: 0.4s; }
+.stagger-fade-in > *:nth-child(5) { animation-delay: 0.5s; }
+.stagger-fade-in > *:nth-child(6) { animation-delay: 0.6s; }
+
+/* Animate On Scroll */
+.animate-on-scroll {
+  opacity: 0;
+  transform: translateY(30px);
+  transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+}
+.animate-on-scroll.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Magnetic Hover (requires JS, provides baseline) */
+.magnetic-hover {
+  transition: transform 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+/* Loading Skeleton */
+.skeleton {
+  background: var(--glass-bg);
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--radius-card);
+}
+.skeleton::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+  animation: shimmer 2s infinite;
+}

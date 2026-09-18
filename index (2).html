@@ -1,0 +1,1546 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JustReturn AI | Smart Returns Processing</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+<style>
+:root {
+  --bg: #020510;
+  --surface: #080f1f;
+  --surface2: #0d1830;
+  --accent: #00c6ff;
+  --accent2: #7b2ff7;
+  --accent3: #ff4d6d;
+  --text: #e8edf8;
+  --muted: #7a8aaa;
+  --glass: rgba(13,24,48,0.7);
+  --border: rgba(0,198,255,0.12);
+  --glow: 0 0 40px rgba(0,198,255,0.18);
+  --font-display: 'Space Grotesk', sans-serif;
+  --font-body: 'Inter', sans-serif;
+}
+
+*,*::before,*::after { box-sizing:border-box; margin:0; padding:0; }
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-body);
+  overflow-x: hidden;
+  cursor: none;
+}
+
+/* ─── CUSTOM CURSOR ─── */
+#cursor {
+  position: fixed;
+  width: 12px; height: 12px;
+  background: var(--accent);
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 9999;
+  mix-blend-mode: screen;
+  transition: transform 0.1s ease, width 0.2s, height 0.2s, background 0.2s;
+}
+#cursor-ring {
+  position: fixed;
+  width: 40px; height: 40px;
+  border: 1.5px solid rgba(0,198,255,0.5);
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 9998;
+  transition: transform 0.15s ease, width 0.25s, height 0.25s, opacity 0.2s;
+}
+body:hover #cursor { opacity: 1; }
+
+/* ─── NOISE OVERLAY ─── */
+body::before {
+  content:'';
+  position: fixed;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 10000;
+  opacity: 0.35;
+}
+
+/* ─── NAVBAR ─── */
+.navbar {
+  position: fixed; top: 0; left: 0; right: 0;
+  z-index: 1000;
+  padding: 18px 40px;
+  display: flex; align-items: center; justify-content: space-between;
+  background: rgba(2,5,16,0.6);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--border);
+  transition: all 0.3s;
+}
+.navbar.scrolled { padding: 12px 40px; background: rgba(2,5,16,0.9); }
+.navbar-logo {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 1.3rem;
+  color: var(--text);
+  text-decoration: none;
+  letter-spacing: -0.5px;
+}
+.navbar-logo span { color: var(--accent); }
+.navbar-links { display: flex; gap: 32px; }
+.navbar-links a {
+  text-decoration: none;
+  color: var(--muted);
+  font-size: 0.875rem;
+  font-weight: 500;
+  position: relative;
+  transition: color 0.3s;
+}
+.navbar-links a::after {
+  content:'';
+  position:absolute;
+  bottom:-4px; left:0;
+  width:0; height:1.5px;
+  background: var(--accent);
+  transition: width 0.3s ease;
+}
+.navbar-links a:hover { color: var(--text); }
+.navbar-links a:hover::after { width:100%; }
+.btn-primary {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: linear-gradient(135deg, var(--accent2), var(--accent));
+  color: #fff;
+  border: none;
+  padding: 10px 24px;
+  border-radius: 100px;
+  font-weight: 600;
+  font-size: 0.875rem;
+  cursor: none;
+  text-decoration: none;
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.btn-primary::before {
+  content:'';
+  position:absolute;
+  inset:0;
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  opacity:0;
+  transition: opacity 0.3s;
+}
+.btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(0,198,255,0.35); }
+.btn-primary:hover::before { opacity:1; }
+.btn-secondary {
+  display: inline-flex; align-items: center;
+  border: 1.5px solid rgba(0,198,255,0.35);
+  color: var(--accent);
+  background: transparent;
+  padding: 10px 24px;
+  border-radius: 100px;
+  font-weight: 600;
+  font-size: 0.875rem;
+  cursor: none;
+  text-decoration: none;
+  transition: all 0.3s;
+}
+.btn-secondary:hover { background: rgba(0,198,255,0.08); border-color: var(--accent); transform: translateY(-2px); }
+
+/* ─── HERO ─── */
+.hero {
+  position: relative;
+  min-height: 100vh;
+  display: flex; align-items: center; justify-content: center;
+  overflow: hidden;
+}
+#hero-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%; height: 100%;
+}
+.hero-content {
+  position: relative;
+  z-index: 10;
+  text-align: center;
+  max-width: 900px;
+  padding: 0 24px;
+}
+.hero-badge {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: rgba(0,198,255,0.08);
+  border: 1px solid rgba(0,198,255,0.2);
+  color: var(--accent);
+  padding: 6px 16px;
+  border-radius: 100px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  margin-bottom: 28px;
+  opacity: 0;
+  animation: fadeUp 0.8s 0.2s ease forwards;
+}
+.hero-title {
+  font-family: var(--font-display);
+  font-size: clamp(3rem, 8vw, 6rem);
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -3px;
+  margin-bottom: 24px;
+  opacity: 0;
+  animation: fadeUp 0.8s 0.4s ease forwards;
+}
+.gradient-text {
+  background: linear-gradient(135deg, var(--accent), var(--accent2), var(--accent3));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  background-size: 200% 200%;
+  animation: gradientShift 4s ease infinite;
+}
+@keyframes gradientShift {
+  0%,100%{background-position:0% 50%} 50%{background-position:100% 50%}
+}
+.hero-subtitle {
+  font-size: 1.15rem;
+  color: var(--muted);
+  max-width: 560px;
+  margin: 0 auto 36px;
+  line-height: 1.7;
+  opacity: 0;
+  animation: fadeUp 0.8s 0.6s ease forwards;
+}
+.hero-cta-group {
+  display: flex; gap: 14px; justify-content: center; flex-wrap: wrap;
+  margin-bottom: 56px;
+  opacity: 0;
+  animation: fadeUp 0.8s 0.8s ease forwards;
+}
+.hero-stats {
+  display: flex; gap: 24px; justify-content: center; flex-wrap: wrap;
+  opacity: 0;
+  animation: fadeUp 0.8s 1s ease forwards;
+}
+.stat-card {
+  background: var(--glass);
+  border: 1px solid var(--border);
+  backdrop-filter: blur(12px);
+  padding: 20px 28px;
+  border-radius: 16px;
+  text-align: center;
+  transition: all 0.4s cubic-bezier(0.34,1.56,0.64,1);
+  position: relative;
+  overflow: hidden;
+}
+.stat-card::before {
+  content:'';
+  position:absolute;
+  top:-50%; left:-50%;
+  width:200%; height:200%;
+  background: radial-gradient(circle, rgba(0,198,255,0.06) 0%, transparent 60%);
+  opacity:0;
+  transition: opacity 0.4s;
+}
+.stat-card:hover { transform: translateY(-8px) scale(1.04); border-color: rgba(0,198,255,0.4); box-shadow: var(--glow); }
+.stat-card:hover::before { opacity:1; }
+.stat-card h3 { font-family: var(--font-display); font-size: 2rem; font-weight: 800; color: var(--accent); }
+.stat-card p { font-size: 0.8rem; color: var(--muted); margin-top: 4px; }
+
+@keyframes fadeUp {
+  from { opacity:0; transform:translateY(30px); }
+  to   { opacity:1; transform:translateY(0); }
+}
+
+/* ─── SCROLLING TICKER ─── */
+.ticker-wrap {
+  overflow: hidden;
+  background: rgba(0,198,255,0.04);
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  padding: 14px 0;
+}
+.ticker {
+  display: flex; gap: 64px;
+  animation: ticker 20s linear infinite;
+  white-space: nowrap;
+}
+.ticker span { font-size: 0.85rem; color: var(--muted); font-weight: 500; }
+.ticker span b { color: var(--accent); }
+@keyframes ticker {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+
+/* ─── SECTION BASE ─── */
+.section {
+  padding: 100px 40px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+.section-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--accent);
+  letter-spacing: 2px;
+  margin-bottom: 12px;
+  text-transform: uppercase;
+}
+.section-title {
+  font-family: var(--font-display);
+  font-size: clamp(2rem, 4vw, 3.2rem);
+  font-weight: 800;
+  letter-spacing: -1.5px;
+  margin-bottom: 16px;
+}
+.section-sub {
+  color: var(--muted);
+  font-size: 1.05rem;
+  max-width: 520px;
+  line-height: 1.7;
+  margin-bottom: 60px;
+}
+
+/* ─── PRODUCTS ─── */
+.products-section { padding: 100px 0; }
+.products-section .section { max-width: 1200px; margin: 0 auto; padding: 0 40px; }
+.products-filter {
+  display: flex; gap: 10px; flex-wrap: wrap;
+  margin-bottom: 48px;
+}
+.filter-btn {
+  padding: 8px 20px;
+  border-radius: 100px;
+  border: 1.5px solid var(--border);
+  background: transparent;
+  color: var(--muted);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: none;
+  transition: all 0.25s;
+}
+.filter-btn.active, .filter-btn:hover {
+  background: rgba(0,198,255,0.1);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.products-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 24px;
+}
+.product-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  overflow: hidden;
+  cursor: none;
+  position: relative;
+  transition: box-shadow 0.4s;
+  transform-style: preserve-3d;
+}
+.product-card:hover { box-shadow: 0 20px 60px rgba(0,198,255,0.15), 0 0 0 1px rgba(0,198,255,0.3); }
+.product-card-img {
+  width: 100%; height: 200px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 5rem;
+  background: linear-gradient(135deg, var(--surface), var(--surface2));
+  position: relative;
+  overflow: hidden;
+}
+.product-card-img::after {
+  content:'';
+  position:absolute;
+  inset:0;
+  background: linear-gradient(180deg, transparent 60%, var(--surface) 100%);
+}
+.product-card-body { padding: 18px 20px 22px; }
+.product-card-body h4 { font-family: var(--font-display); font-size: 1rem; font-weight: 700; margin-bottom: 6px; }
+.product-card-body p { font-size: 0.8rem; color: var(--muted); }
+.product-badge {
+  position: absolute;
+  top: 14px; right: 14px;
+  padding: 4px 10px;
+  border-radius: 100px;
+  font-size: 0.7rem;
+  font-weight: 700;
+}
+.badge-ok { background: rgba(0,230,150,0.15); color: #00e696; border: 1px solid rgba(0,230,150,0.3); }
+.badge-damage { background: rgba(255,77,109,0.15); color: var(--accent3); border: 1px solid rgba(255,77,109,0.3); }
+.badge-review { background: rgba(255,185,0,0.15); color: #ffb900; border: 1px solid rgba(255,185,0,0.3); }
+.shine-overlay {
+  position:absolute;
+  inset:0;
+  background: linear-gradient(135deg, transparent 0%, rgba(255,255,255,0.04) 50%, transparent 100%);
+  transform: translateX(-100%);
+  transition: transform 0.6s;
+}
+.product-card:hover .shine-overlay { transform: translateX(100%); }
+
+/* ─── HOW IT WORKS ─── */
+.hiw-section { padding: 100px 0; background: linear-gradient(180deg, transparent, rgba(0,198,255,0.02) 50%, transparent); }
+.hiw-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 60px;
+  align-items: center;
+}
+.hiw-steps { display: flex; flex-direction: column; gap: 6px; }
+.step-item {
+  display: flex; align-items: flex-start; gap: 20px;
+  padding: 22px 24px;
+  border-radius: 16px;
+  border: 1px solid transparent;
+  transition: all 0.4s cubic-bezier(0.34,1.56,0.64,1);
+  cursor: none;
+}
+.step-item:hover {
+  background: var(--glass);
+  border-color: var(--border);
+  transform: translateX(10px);
+}
+.step-num {
+  width: 40px; height: 40px;
+  min-width: 40px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, var(--accent2), var(--accent));
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 0.9rem;
+}
+.step-item h4 { font-family: var(--font-display); font-weight: 700; margin-bottom: 4px; }
+.step-item p { font-size: 0.85rem; color: var(--muted); line-height: 1.6; }
+.hiw-visual {
+  position: relative;
+  height: 520px;
+}
+#hiw-canvas { width:100%; height:100%; border-radius: 24px; }
+
+/* PATHS */
+.paths-row {
+  display: grid;
+  grid-template-columns: repeat(3,1fr);
+  gap: 20px;
+  margin-top: 60px;
+}
+.path-card {
+  padding: 28px 24px;
+  border-radius: 20px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  text-align: center;
+  transition: all 0.4s cubic-bezier(0.34,1.56,0.64,1);
+  position: relative;
+  overflow: hidden;
+}
+.path-card::before {
+  content:'';
+  position:absolute;
+  bottom:0; left:0; right:0;
+  height:3px;
+}
+.path-card.approve::before { background: linear-gradient(90deg,#00e696,#00c6ff); }
+.path-card.review::before  { background: linear-gradient(90deg,#ffb900,#ff6b00); }
+.path-card.reject::before  { background: linear-gradient(90deg,var(--accent3),#7b2ff7); }
+.path-card:hover { transform: translateY(-10px); box-shadow: 0 20px 50px rgba(0,0,0,0.3); border-color: rgba(0,198,255,0.25); }
+.path-icon { font-size: 2.4rem; margin-bottom: 14px; }
+.path-card h3 { font-family: var(--font-display); font-weight: 700; margin-bottom: 8px; }
+.path-card p { font-size: 0.82rem; color: var(--muted); line-height: 1.6; }
+
+/* ─── FORM SECTION ─── */
+.form-section { padding: 100px 0; }
+.form-outer {
+  max-width: 680px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+.form-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 28px;
+  padding: 44px;
+  position: relative;
+  overflow: hidden;
+}
+.form-card::before {
+  content:'';
+  position:absolute;
+  top:-100px; right:-100px;
+  width:300px; height:300px;
+  background: radial-gradient(circle, rgba(123,47,247,0.1) 0%, transparent 70%);
+  pointer-events:none;
+}
+.progress-bar {
+  display: flex; gap: 0;
+  margin-bottom: 40px;
+  position: relative;
+}
+.progress-bar::before {
+  content:'';
+  position:absolute;
+  top:16px; left:16px; right:16px;
+  height:2px;
+  background: var(--border);
+}
+.prog-step {
+  flex:1;
+  display:flex; flex-direction:column; align-items:center; gap:8px;
+  position: relative;
+  z-index:1;
+}
+.prog-dot {
+  width:32px; height:32px;
+  border-radius:50%;
+  background: var(--surface2);
+  border: 2px solid var(--border);
+  display:flex; align-items:center; justify-content:center;
+  font-size:0.75rem; font-weight:700;
+  transition: all 0.4s;
+}
+.prog-step.active .prog-dot { background: linear-gradient(135deg,var(--accent2),var(--accent)); border-color:var(--accent); box-shadow: 0 0 20px rgba(0,198,255,0.4); }
+.prog-step.done .prog-dot { background: #00e696; border-color:#00e696; }
+.prog-label { font-size:0.7rem; color:var(--muted); font-weight:600; white-space:nowrap; }
+.prog-step.active .prog-label { color:var(--accent); }
+
+.form-step { display:none; animation: stepIn 0.4s ease; }
+.form-step.active { display:block; }
+@keyframes stepIn {
+  from { opacity:0; transform:translateX(20px); }
+  to   { opacity:1; transform:translateX(0); }
+}
+.form-group { margin-bottom: 20px; }
+.form-group label {
+  display:block;
+  font-size:0.82rem; font-weight:600; color:var(--muted);
+  margin-bottom:8px;
+  text-transform:uppercase; letter-spacing:0.5px;
+}
+.form-group input,
+.form-group select,
+.form-group textarea {
+  width:100%;
+  background: var(--surface2);
+  border: 1.5px solid var(--border);
+  color: var(--text);
+  padding: 12px 16px;
+  border-radius: 12px;
+  font-size: 0.9rem;
+  font-family: var(--font-body);
+  outline:none;
+  transition: border-color 0.3s, box-shadow 0.3s;
+  cursor: none;
+}
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(0,198,255,0.12);
+}
+.form-group select option { background: var(--surface2); }
+.form-group textarea { resize:vertical; min-height:100px; }
+
+.upload-zone {
+  border: 2px dashed rgba(0,198,255,0.25);
+  border-radius: 16px;
+  padding: 48px;
+  text-align:center;
+  cursor:none;
+  transition: all 0.3s;
+  position:relative;
+  overflow:hidden;
+}
+.upload-zone.drag-over { border-color:var(--accent); background:rgba(0,198,255,0.05); }
+.upload-zone:hover { border-color:rgba(0,198,255,0.5); }
+.upload-zone .upload-icon { font-size:2.5rem; margin-bottom:12px; }
+.upload-zone p { font-weight:600; margin-bottom:6px; }
+.upload-zone small { color:var(--muted); font-size:0.8rem; }
+.upload-previews { display:flex; flex-wrap:wrap; gap:10px; margin-top:14px; }
+.upload-previews img { width:72px; height:72px; object-fit:cover; border-radius:10px; border:1.5px solid var(--border); }
+
+.form-btns { display:flex; gap:12px; margin-top:28px; }
+.form-btns .btn-primary { flex:1; justify-content:center; padding:14px; }
+.form-btns .btn-secondary { padding:14px 24px; }
+
+.review-box {
+  background:var(--surface2);
+  border-radius:16px;
+  padding:24px;
+  display:flex; flex-direction:column; gap:12px;
+}
+.review-row { display:flex; justify-content:space-between; align-items:center; }
+.review-row span:first-child { color:var(--muted); font-size:0.85rem; }
+.review-row span:last-child { font-weight:600; font-size:0.9rem; }
+
+.result-card {
+  text-align:center;
+  padding:40px;
+}
+.result-icon { font-size:4rem; margin-bottom:16px; animation:resultPop 0.5s cubic-bezier(0.34,1.56,0.64,1); }
+@keyframes resultPop { from{transform:scale(0)} to{transform:scale(1)} }
+.result-card h3 { font-family:var(--font-display); font-size:1.6rem; font-weight:800; margin-bottom:8px; }
+.result-card p { color:var(--muted); }
+.result-id { display:inline-block; margin-top:16px; font-size:0.8rem; color:var(--accent); background:rgba(0,198,255,0.08); padding:6px 14px; border-radius:100px; border:1px solid rgba(0,198,255,0.2); }
+
+/* ─── DASHBOARD ─── */
+.dash-section { padding:100px 0; }
+.dash-stats { display:grid; grid-template-columns:repeat(4,1fr); gap:20px; margin-bottom:40px; }
+.dash-stat {
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:18px;
+  padding:24px;
+  display:flex; flex-direction:column; gap:8px;
+  transition: all 0.4s cubic-bezier(0.34,1.56,0.64,1);
+  position:relative;
+  overflow:hidden;
+}
+.dash-stat::after {
+  content:'';
+  position:absolute;
+  top:0; left:0; right:0;
+  height:2px;
+}
+.dash-stat.total::after  { background:linear-gradient(90deg,var(--accent2),var(--accent)); }
+.dash-stat.approved::after{ background:linear-gradient(90deg,#00e696,#00c6ff); }
+.dash-stat.review::after  { background:linear-gradient(90deg,#ffb900,#ff6b00); }
+.dash-stat.rejected::after{ background:linear-gradient(90deg,var(--accent3),var(--accent2)); }
+.dash-stat:hover { transform:translateY(-6px); box-shadow:0 16px 40px rgba(0,0,0,0.25); border-color:rgba(0,198,255,0.25); }
+.dash-stat .stat-icon { font-size:1.5rem; }
+.dash-stat .stat-val { font-family:var(--font-display); font-size:2.2rem; font-weight:800; color:var(--text); }
+.dash-stat .stat-lbl { font-size:0.8rem; color:var(--muted); font-weight:500; }
+
+.dash-filters { display:flex; gap:10px; margin-bottom:24px; }
+.dash-filters button {
+  padding:7px 18px; border-radius:100px;
+  border:1.5px solid var(--border);
+  background:transparent; color:var(--muted);
+  font-size:0.82rem; font-weight:600; cursor:none;
+  transition:all 0.25s;
+}
+.dash-filters button.active,
+.dash-filters button:hover { background:rgba(0,198,255,0.1); border-color:var(--accent); color:var(--accent); }
+
+.table-wrap {
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:20px;
+  overflow:hidden;
+  margin-bottom:32px;
+}
+.dash-table { width:100%; border-collapse:collapse; }
+.dash-table thead th {
+  padding:14px 20px;
+  text-align:left;
+  font-size:0.75rem; font-weight:700;
+  color:var(--muted);
+  text-transform:uppercase; letter-spacing:0.5px;
+  background:var(--surface2);
+  border-bottom:1px solid var(--border);
+}
+.dash-table tbody tr {
+  border-bottom:1px solid var(--border);
+  transition: background 0.2s;
+}
+.dash-table tbody tr:last-child { border-bottom:none; }
+.dash-table tbody tr:hover { background:rgba(0,198,255,0.03); }
+.dash-table tbody td { padding:14px 20px; font-size:0.85rem; }
+.status-pill {
+  display:inline-block;
+  padding:4px 12px;
+  border-radius:100px;
+  font-size:0.72rem; font-weight:700;
+}
+.status-approved { background:rgba(0,230,150,0.12); color:#00e696; border:1px solid rgba(0,230,150,0.25); }
+.status-review   { background:rgba(255,185,0,0.12); color:#ffb900; border:1px solid rgba(255,185,0,0.25); }
+.status-rejected { background:rgba(255,77,109,0.12); color:var(--accent3); border:1px solid rgba(255,77,109,0.25); }
+
+/* ─── FOOTER ─── */
+footer {
+  background:var(--surface);
+  border-top:1px solid var(--border);
+  padding:60px 40px 32px;
+}
+.footer-grid {
+  max-width:1200px; margin:0 auto;
+  display:grid; grid-template-columns:2fr 1fr 1fr 1fr;
+  gap:48px; margin-bottom:48px;
+}
+.footer-brand h3 { font-family:var(--font-display); font-weight:800; font-size:1.2rem; margin-bottom:12px; }
+.footer-brand p { color:var(--muted); font-size:0.85rem; line-height:1.7; }
+.footer-col h4 { font-weight:700; font-size:0.85rem; margin-bottom:16px; }
+.footer-col a,.footer-col p { display:block; color:var(--muted); font-size:0.82rem; text-decoration:none; margin-bottom:8px; transition:color 0.2s; }
+.footer-col a:hover { color:var(--accent); }
+.footer-bottom {
+  max-width:1200px; margin:0 auto;
+  padding-top:24px; border-top:1px solid var(--border);
+  display:flex; justify-content:space-between; align-items:center;
+  font-size:0.8rem; color:var(--muted);
+}
+
+/* ─── FLOATING PARTICLES ─── */
+.particles { position:fixed; inset:0; pointer-events:none; z-index:1; overflow:hidden; }
+.particle {
+  position:absolute;
+  border-radius:50%;
+  animation: floatParticle linear infinite;
+}
+@keyframes floatParticle {
+  0%   { transform:translateY(100vh) scale(0); opacity:0; }
+  10%  { opacity:1; }
+  90%  { opacity:0.5; }
+  100% { transform:translateY(-10vh) scale(1); opacity:0; }
+}
+
+/* ─── SCROLL REVEAL ─── */
+.reveal {
+  opacity:0;
+  transform:translateY(40px);
+  transition:opacity 0.7s ease, transform 0.7s ease;
+}
+.reveal.visible { opacity:1; transform:translateY(0); }
+
+/* ─── MISC ─── */
+.gradient-line {
+  height:1px;
+  background:linear-gradient(90deg,transparent,var(--accent),var(--accent2),transparent);
+  margin:0;
+  border:none;
+}
+
+@media(max-width:768px){
+  .navbar { padding:14px 20px; }
+  .navbar-links { display:none; }
+  .hiw-grid { grid-template-columns:1fr; }
+  .hiw-visual { height:300px; }
+  .paths-row { grid-template-columns:1fr; }
+  .dash-stats { grid-template-columns:repeat(2,1fr); }
+  .footer-grid { grid-template-columns:1fr 1fr; }
+}
+</style>
+</head>
+<body>
+
+<!-- CURSOR -->
+<div id="cursor"></div>
+<div id="cursor-ring"></div>
+
+<!-- FLOATING PARTICLES -->
+<div class="particles" id="particles"></div>
+
+<!-- NAVBAR -->
+<nav class="navbar" id="navbar">
+  <div style="display:flex;align-items:center;justify-content:space-between;width:100%;max-width:1200px;margin:0 auto;">
+    <a href="#hero" class="navbar-logo">Just<span>Return</span> AI 🛡️</a>
+    <div class="navbar-links">
+      <a href="#products">Products</a>
+      <a href="#how-it-works">How It Works</a>
+      <a href="#return-form">Submit Return</a>
+      <a href="#dashboard">Dashboard</a>
+    </div>
+    <a href="#return-form" class="btn-primary">Get Started</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section id="hero" class="hero">
+  <canvas id="hero-canvas"></canvas>
+  <div class="hero-content">
+    <span class="hero-badge">🛡️ YOLOv8-Powered Returns Intelligence</span>
+    <h1 class="hero-title">Smart Returns,<br><span class="gradient-text">Zero Fraud</span></h1>
+    <p class="hero-subtitle">Process returns in 3 seconds with computer vision AI. Detect fraud automatically. Save $103B annually.</p>
+    <div class="hero-cta-group">
+      <a href="#return-form" class="btn-primary">Submit a Return</a>
+      <a href="#how-it-works" class="btn-secondary">See How It Works</a>
+    </div>
+    <div class="hero-stats">
+      <div class="stat-card"><h3>95%</h3><p>Faster Processing</p></div>
+      <div class="stat-card"><h3>$103B</h3><p>Fraud Prevented</p></div>
+      <div class="stat-card"><h3>3s</h3><p>Avg Response</p></div>
+      <div class="stat-card"><h3>100%</h3><p>Audit Trail</p></div>
+    </div>
+  </div>
+</section>
+
+<hr class="gradient-line">
+
+<!-- TICKER -->
+<div class="ticker-wrap">
+  <div class="ticker">
+    <span>🚀 <b>YOLOv8</b> Vision AI</span>
+    <span>✅ <b>95%</b> Faster Processing</span>
+    <span>🛡️ <b>Fraud</b> Auto-Detection</span>
+    <span>📊 <b>Real-time</b> Dashboard</span>
+    <span>⚡ <b>3-second</b> Decisions</span>
+    <span>🧠 <b>Smart</b> Routing Engine</span>
+    <span>🚀 <b>YOLOv8</b> Vision AI</span>
+    <span>✅ <b>95%</b> Faster Processing</span>
+    <span>🛡️ <b>Fraud</b> Auto-Detection</span>
+    <span>📊 <b>Real-time</b> Dashboard</span>
+    <span>⚡ <b>3-second</b> Decisions</span>
+    <span>🧠 <b>Smart</b> Routing Engine</span>
+  </div>
+</div>
+
+<!-- PRODUCTS -->
+<section id="products" class="products-section">
+  <div class="section">
+    <p class="section-label">Product Categories</p>
+    <h2 class="section-title">AI Damage Detection</h2>
+    <p class="section-sub">Computer vision trained to identify defects across every return category, at scale.</p>
+    <div class="products-filter" id="products-filter">
+      <button class="filter-btn active" data-cat="all">All</button>
+      <button class="filter-btn" data-cat="cars">Cars</button>
+      <button class="filter-btn" data-cat="bikes">Bikes</button>
+      <button class="filter-btn" data-cat="mobile">Mobile</button>
+      <button class="filter-btn" data-cat="cup">Cup</button>
+      <button class="filter-btn" data-cat="ps4">PS4</button>
+      <button class="filter-btn" data-cat="ps5">PS5</button>
+    </div>
+    <div class="products-grid" id="products-grid"></div>
+  </div>
+</section>
+
+<hr class="gradient-line">
+
+<!-- HOW IT WORKS -->
+<section id="how-it-works" class="hiw-section">
+  <div class="section" style="max-width:1200px;margin:0 auto;padding:100px 40px;">
+    <div class="hiw-grid">
+      <div>
+        <p class="section-label">Process</p>
+        <h2 class="section-title">Five steps,<br>one decision</h2>
+        <p class="section-sub">From photo upload to refund decision — fully automated, end-to-end.</p>
+        <div class="hiw-steps" id="hiw-steps">
+          <div class="step-item reveal">
+            <div class="step-num">1</div>
+            <div><h4>Submit Return</h4><p>Customer fills the return form with order details and product photos</p></div>
+          </div>
+          <div class="step-item reveal">
+            <div class="step-num">2</div>
+            <div><h4>AI Analysis</h4><p>YOLOv8 scans product photos for damage detection and classification</p></div>
+          </div>
+          <div class="step-item reveal">
+            <div class="step-num">3</div>
+            <div><h4>Smart Routing</h4><p>AI engine routes the return through one of three decision paths</p></div>
+          </div>
+          <div class="step-item reveal">
+            <div class="step-num">4</div>
+            <div><h4>Human Review</h4><p>Flagged cases escalate to managers with full evidence package</p></div>
+          </div>
+          <div class="step-item reveal">
+            <div class="step-num">5</div>
+            <div><h4>Resolution</h4><p>Decision logged with complete audit trail in real-time dashboard</p></div>
+          </div>
+        </div>
+      </div>
+      <div class="hiw-visual">
+        <canvas id="hiw-canvas"></canvas>
+      </div>
+    </div>
+
+    <div class="paths-row">
+      <div class="path-card approve reveal">
+        <div class="path-icon">✅</div>
+        <h3>Auto-Approve</h3>
+        <p>Value &lt; $75, confirmed damage, within 90 days — instant refund initiated</p>
+      </div>
+      <div class="path-card review reveal">
+        <div class="path-icon">⚠️</div>
+        <h3>Human Review</h3>
+        <p>Claim mismatch, high-value item, or serial returner — escalated with evidence</p>
+      </div>
+      <div class="path-card reject reveal">
+        <div class="path-icon">❌</div>
+        <h3>Auto-Reject</h3>
+        <p>Policy violation, &gt; 90 days, non-compliance — declined with reason code</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr class="gradient-line">
+
+<!-- RETURN FORM -->
+<section id="return-form" class="form-section">
+  <div class="form-outer">
+    <p class="section-label" style="text-align:center">Submit Return</p>
+    <h2 class="section-title" style="text-align:center;margin-bottom:8px">Start a Return</h2>
+    <p style="text-align:center;color:var(--muted);margin-bottom:40px;font-size:0.95rem;">Fill out the form and get an AI decision in seconds.</p>
+    <div class="form-card">
+      <!-- Progress -->
+      <div class="progress-bar">
+        <div class="prog-step active" id="prog-1">
+          <div class="prog-dot">1</div>
+          <span class="prog-label">Product</span>
+        </div>
+        <div class="prog-step" id="prog-2">
+          <div class="prog-dot">2</div>
+          <span class="prog-label">Issue</span>
+        </div>
+        <div class="prog-step" id="prog-3">
+          <div class="prog-dot">3</div>
+          <span class="prog-label">Photos</span>
+        </div>
+        <div class="prog-step" id="prog-4">
+          <div class="prog-dot">4</div>
+          <span class="prog-label">Review</span>
+        </div>
+      </div>
+
+      <!-- Step 1 -->
+      <div id="step-1" class="form-step active">
+        <div class="form-group">
+          <label>Order ID</label>
+          <input type="text" id="order-id" placeholder="e.g. ORD-2025-001">
+        </div>
+        <div class="form-group">
+          <label>Product Category</label>
+          <select id="product-category">
+            <option value="">Select Category</option>
+            <option value="cars">Cars</option>
+            <option value="bikes">Bikes</option>
+            <option value="mobile">Mobile</option>
+            <option value="cup">Cup</option>
+            <option value="ps4">PS4</option>
+            <option value="ps5">PS5</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Product Name</label>
+          <select id="product-name" disabled><option>Select Category First</option></select>
+        </div>
+        <div class="form-btns"><button class="btn-primary next-btn" data-to="2">Next →</button></div>
+      </div>
+
+      <!-- Step 2 -->
+      <div id="step-2" class="form-step">
+        <div class="form-group">
+          <label>Damage Type</label>
+          <select id="damage-type">
+            <option value="">Select Issue</option>
+            <option value="broken">Broken / Shattered</option>
+            <option value="scratched">Scratched</option>
+            <option value="dented">Dented</option>
+            <option value="not_working">Not Working</option>
+            <option value="wrong_item">Wrong Item</option>
+            <option value="other">Other</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Description</label>
+          <textarea id="damage-desc" placeholder="Describe the issue in detail..."></textarea>
+        </div>
+        <div class="form-btns">
+          <button class="btn-secondary back-btn" data-to="1">← Back</button>
+          <button class="btn-primary next-btn" data-to="3">Next →</button>
+        </div>
+      </div>
+
+      <!-- Step 3 -->
+      <div id="step-3" class="form-step">
+        <div class="upload-zone" id="upload-zone">
+          <div class="upload-icon">📷</div>
+          <p>Drop product photos here</p>
+          <small>JPG, PNG, WebP — up to 10MB each</small>
+          <input type="file" id="file-input" multiple accept="image/*" style="display:none">
+        </div>
+        <div class="upload-previews" id="upload-previews"></div>
+        <div class="form-btns">
+          <button class="btn-secondary back-btn" data-to="2">← Back</button>
+          <button class="btn-primary next-btn" data-to="4">Next →</button>
+        </div>
+      </div>
+
+      <!-- Step 4 -->
+      <div id="step-4" class="form-step">
+        <div class="review-box" id="review-box"></div>
+        <div class="form-btns" style="margin-top:20px">
+          <button class="btn-secondary back-btn" data-to="3">← Back</button>
+          <button class="btn-primary" id="submit-btn">🚀 Submit for AI Analysis</button>
+        </div>
+      </div>
+
+      <!-- Result -->
+      <div id="form-result" style="display:none"></div>
+    </div>
+  </div>
+</section>
+
+<hr class="gradient-line">
+
+<!-- DASHBOARD -->
+<section id="dashboard" class="dash-section">
+  <div class="section" style="max-width:1200px;margin:0 auto;padding:100px 40px;">
+    <p class="section-label">Analytics</p>
+    <h2 class="section-title">Returns Dashboard</h2>
+    <p class="section-sub">Real-time tracking and decision analytics across all processed returns.</p>
+
+    <div class="dash-stats">
+      <div class="dash-stat total">
+        <div class="stat-icon">📦</div>
+        <div class="stat-val" id="stat-total">0</div>
+        <div class="stat-lbl">Total Returns</div>
+      </div>
+      <div class="dash-stat approved">
+        <div class="stat-icon">✅</div>
+        <div class="stat-val" id="stat-approved">0</div>
+        <div class="stat-lbl">Approved</div>
+      </div>
+      <div class="dash-stat review">
+        <div class="stat-icon">⚠️</div>
+        <div class="stat-val" id="stat-review">0</div>
+        <div class="stat-lbl">Under Review</div>
+      </div>
+      <div class="dash-stat rejected">
+        <div class="stat-icon">❌</div>
+        <div class="stat-val" id="stat-rejected">0</div>
+        <div class="stat-lbl">Rejected</div>
+      </div>
+    </div>
+
+    <div class="dash-filters" id="dash-filters">
+      <button class="active" data-f="all">All</button>
+      <button data-f="approved">Approved</button>
+      <button data-f="review">Review</button>
+      <button data-f="rejected">Rejected</button>
+    </div>
+
+    <div class="table-wrap">
+      <table class="dash-table">
+        <thead>
+          <tr>
+            <th>Order ID</th>
+            <th>Product</th>
+            <th>Category</th>
+            <th>Date</th>
+            <th>Status</th>
+            <th>Decision</th>
+          </tr>
+        </thead>
+        <tbody id="table-body"></tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-grid">
+    <div class="footer-brand">
+      <h3>JustReturn AI 🛡️</h3>
+      <p>The smartest returns processing engine for modern e-commerce. Powered by YOLOv8 vision AI.</p>
+    </div>
+    <div class="footer-col">
+      <h4>Quick Links</h4>
+      <a href="#hero">Home</a>
+      <a href="#products">Products</a>
+      <a href="#return-form">Submit Return</a>
+    </div>
+    <div class="footer-col">
+      <h4>Technology</h4>
+      <p>YOLOv8</p>
+      <p>FastAPI</p>
+      <p>Three.js</p>
+      <p>GSAP</p>
+    </div>
+    <div class="footer-col">
+      <h4>Connect</h4>
+      <a href="#">Twitter</a>
+      <a href="#">LinkedIn</a>
+      <a href="#">GitHub</a>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <p>© 2026 JustReturn AI. Built with ❤️ and AI.</p>
+    <p>Powered by YOLOv8 + FastAPI</p>
+  </div>
+</footer>
+
+<script>
+// ─── DATA ───────────────────────────────────────────────────────────────────
+const PRODUCTS = [
+  { name:'Tesla Model 3', category:'cars', emoji:'🚗', status:'approved', badge:'badge-ok', label:'No Damage' },
+  { name:'Dodge Viper', category:'cars', emoji:'🏎️', status:'rejected', badge:'badge-damage', label:'Severe Dent' },
+  { name:'Honda Civic', category:'cars', emoji:'🚙', status:'review', badge:'badge-review', label:'Under Review' },
+  { name:'Kawasaki Ninja', category:'bikes', emoji:'🏍️', status:'approved', badge:'badge-ok', label:'Minor Scratch' },
+  { name:'Harley Davidson', category:'bikes', emoji:'🏍️', status:'rejected', badge:'badge-damage', label:'Frame Crack' },
+  { name:'iPhone 15 Pro', category:'mobile', emoji:'📱', status:'approved', badge:'badge-ok', label:'Screen OK' },
+  { name:'Samsung S24', category:'mobile', emoji:'📱', status:'review', badge:'badge-review', label:'Under Review' },
+  { name:'Google Pixel 9', category:'mobile', emoji:'📱', status:'rejected', badge:'badge-damage', label:'Shattered' },
+  { name:'Coffee Mug', category:'cup', emoji:'☕', status:'approved', badge:'badge-ok', label:'No Damage' },
+  { name:'Travel Tumbler', category:'cup', emoji:'🥤', status:'rejected', badge:'badge-damage', label:'Cracked Lid' },
+  { name:'PS4 Slim', category:'ps4', emoji:'🎮', status:'approved', badge:'badge-ok', label:'Working' },
+  { name:'PS4 Pro', category:'ps4', emoji:'🕹️', status:'review', badge:'badge-review', label:'Disc Error' },
+  { name:'PS5 Standard', category:'ps5', emoji:'🎮', status:'approved', badge:'badge-ok', label:'Mint Condition' },
+  { name:'PS5 Digital', category:'ps5', emoji:'🕹️', status:'rejected', badge:'badge-damage', label:'HDMI Port Bent' },
+];
+
+const PRODUCT_NAMES = {
+  cars:['Tesla Model 3','Dodge Viper','Honda Civic','BMW M3'],
+  bikes:['Kawasaki Ninja','Harley Davidson','Royal Enfield','Ducati'],
+  mobile:['iPhone 15 Pro','Samsung S24','Google Pixel 9','OnePlus 12'],
+  cup:['Coffee Mug','Travel Tumbler','Thermos Flask','Ceramic Cup'],
+  ps4:['PS4 Slim','PS4 Pro'],
+  ps5:['PS5 Standard','PS5 Digital'],
+};
+
+let returns = [
+  { id:'ORD-2025-001', product:'Tesla Model 3', category:'cars', date:'2025-01-10', status:'approved', decision:'Auto-Approved' },
+  { id:'ORD-2025-002', product:'iPhone 15 Pro', category:'mobile', date:'2025-01-11', status:'review', decision:'Pending Review' },
+  { id:'ORD-2025-003', product:'PS5 Standard', category:'ps5', date:'2025-01-12', status:'rejected', decision:'Policy Violation' },
+  { id:'ORD-2025-004', product:'Kawasaki Ninja', category:'bikes', date:'2025-01-13', status:'approved', decision:'Auto-Approved' },
+  { id:'ORD-2025-005', product:'Coffee Mug', category:'cup', date:'2025-01-14', status:'approved', decision:'Auto-Approved' },
+];
+
+// ─── CURSOR ─────────────────────────────────────────────────────────────────
+const cursor = document.getElementById('cursor');
+const ring   = document.getElementById('cursor-ring');
+let mx=0,my=0,rx=0,ry=0;
+document.addEventListener('mousemove', e => { mx=e.clientX; my=e.clientY; cursor.style.left=(mx-6)+'px'; cursor.style.top=(my-6)+'px'; });
+(function animRing(){
+  rx += (mx - rx) * 0.12;
+  ry += (my - ry) * 0.12;
+  ring.style.left = (rx-20)+'px';
+  ring.style.top  = (ry-20)+'px';
+  requestAnimationFrame(animRing);
+})();
+document.querySelectorAll('a,button,[class*="btn"],.step-item,.stat-card,.product-card,.path-card,.dash-stat').forEach(el => {
+  el.addEventListener('mouseenter', () => {
+    cursor.style.width='20px'; cursor.style.height='20px'; cursor.style.background='#7b2ff7';
+    ring.style.width='60px'; ring.style.height='60px'; ring.style.opacity='0.5';
+  });
+  el.addEventListener('mouseleave', () => {
+    cursor.style.width='12px'; cursor.style.height='12px'; cursor.style.background='var(--accent)';
+    ring.style.width='40px'; ring.style.height='40px'; ring.style.opacity='1';
+  });
+});
+
+// ─── PARTICLES ──────────────────────────────────────────────────────────────
+const pCont = document.getElementById('particles');
+function spawnParticle(){
+  const p = document.createElement('div');
+  p.className = 'particle';
+  const size = Math.random()*3+1;
+  const colors = ['rgba(0,198,255,0.6)','rgba(123,47,247,0.6)','rgba(255,77,109,0.4)'];
+  p.style.cssText = `
+    width:${size}px;height:${size}px;
+    left:${Math.random()*100}%;
+    background:${colors[Math.floor(Math.random()*colors.length)]};
+    animation-duration:${8+Math.random()*12}s;
+    animation-delay:${Math.random()*8}s;
+  `;
+  pCont.appendChild(p);
+  setTimeout(()=>p.remove(), 22000);
+}
+setInterval(spawnParticle, 400);
+for(let i=0;i<20;i++) setTimeout(spawnParticle, i*200);
+
+// ─── NAVBAR SCROLL ───────────────────────────────────────────────────────────
+window.addEventListener('scroll', () => {
+  document.getElementById('navbar').classList.toggle('scrolled', scrollY > 60);
+});
+
+// ─── HERO THREE.JS CANVAS ────────────────────────────────────────────────────
+(function(){
+  const canvas = document.getElementById('hero-canvas');
+  const ctx = canvas.getContext('2d');
+  let W,H,nodes=[],mouse={x:-999,y:-999};
+  
+  function resize(){ W=canvas.width=window.innerWidth; H=canvas.height=window.innerHeight; }
+  resize();
+  window.addEventListener('resize',resize);
+  document.addEventListener('mousemove',e=>{ mouse.x=e.clientX; mouse.y=e.clientY; });
+  
+  for(let i=0;i<120;i++){
+    nodes.push({
+      x:Math.random()*W, y:Math.random()*H,
+      vx:(Math.random()-0.5)*0.4, vy:(Math.random()-0.5)*0.4,
+      r:Math.random()*1.5+0.5,
+      color:Math.random()<0.5?'rgba(0,198,255,':'rgba(123,47,247,'
+    });
+  }
+  
+  function draw(){
+    ctx.clearRect(0,0,W,H);
+    // ambient glow
+    const g=ctx.createRadialGradient(W/2,H/2,0,W/2,H/2,H*0.7);
+    g.addColorStop(0,'rgba(0,198,255,0.03)');
+    g.addColorStop(0.5,'rgba(123,47,247,0.02)');
+    g.addColorStop(1,'transparent');
+    ctx.fillStyle=g; ctx.fillRect(0,0,W,H);
+    
+    for(let i=0;i<nodes.length;i++){
+      const n=nodes[i];
+      // mouse repulsion
+      const dx=n.x-mouse.x, dy=n.y-mouse.y, dist=Math.sqrt(dx*dx+dy*dy);
+      if(dist<150){ n.vx+=dx/dist*0.08; n.vy+=dy/dist*0.08; }
+      n.x+=n.vx; n.y+=n.vy;
+      n.vx*=0.99; n.vy*=0.99;
+      if(n.x<0||n.x>W) n.vx*=-1;
+      if(n.y<0||n.y>H) n.vy*=-1;
+      
+      // draw connections
+      for(let j=i+1;j<nodes.length;j++){
+        const m=nodes[j];
+        const d=Math.sqrt((n.x-m.x)**2+(n.y-m.y)**2);
+        if(d<120){
+          ctx.beginPath();
+          ctx.moveTo(n.x,n.y); ctx.lineTo(m.x,m.y);
+          ctx.strokeStyle=n.color+(1-d/120)*0.25+')';
+          ctx.lineWidth=0.5;
+          ctx.stroke();
+        }
+      }
+      // draw node
+      ctx.beginPath();
+      ctx.arc(n.x,n.y,n.r,0,Math.PI*2);
+      ctx.fillStyle=n.color+'0.9)';
+      ctx.fill();
+    }
+    requestAnimationFrame(draw);
+  }
+  draw();
+})();
+
+// ─── HOW-IT-WORKS CANVAS (3D rotating cube network) ──────────────────────────
+(function(){
+  const canvas = document.getElementById('hiw-canvas');
+  const ctx = canvas.getContext('2d');
+  let W,H,t=0;
+  
+  function resize(){
+    const rect = canvas.getBoundingClientRect();
+    W=canvas.width=rect.width; H=canvas.height=rect.height;
+  }
+  resize();
+  window.addEventListener('resize',resize);
+  
+  const nodes3d = [];
+  const edges = [];
+  // cube vertices
+  const vs = [[-1,-1,-1],[1,-1,-1],[1,1,-1],[-1,1,-1],[-1,-1,1],[1,-1,1],[1,1,1],[-1,1,1]];
+  vs.forEach(v => nodes3d.push({x:v[0],y:v[1],z:v[2],type:'cube'}));
+  // edges
+  const cubeEdges=[[0,1],[1,2],[2,3],[3,0],[4,5],[5,6],[6,7],[7,4],[0,4],[1,5],[2,6],[3,7]];
+  cubeEdges.forEach(e=>edges.push(e));
+  // inner nodes
+  for(let i=0;i<8;i++) nodes3d.push({x:(Math.random()-0.5)*1.5,y:(Math.random()-0.5)*1.5,z:(Math.random()-0.5)*1.5,type:'inner'});
+  
+  function project(x,y,z,rx,ry){
+    // rotate y
+    let x1 = x*Math.cos(ry)-z*Math.sin(ry);
+    let z1 = x*Math.sin(ry)+z*Math.cos(ry);
+    let y1 = y;
+    // rotate x
+    let y2 = y1*Math.cos(rx)-z1*Math.sin(rx);
+    let z2 = y1*Math.sin(rx)+z1*Math.cos(rx);
+    let x2 = x1;
+    const fov=4; const scale=W*0.2;
+    const pz = z2+fov;
+    return { px: W/2 + x2/pz*scale, py: H/2 + y2/pz*scale, pz: pz };
+  }
+  
+  function drawHIW(){
+    ctx.clearRect(0,0,W,H);
+    t+=0.008;
+    const rx = t*0.4, ry = t;
+    const projected = nodes3d.map(n=>({ ...project(n.x,n.y,n.z,rx,ry), type:n.type }));
+    
+    // edges
+    cubeEdges.forEach(([a,b])=>{
+      const pa=projected[a],pb=projected[b];
+      ctx.beginPath(); ctx.moveTo(pa.px,pa.py); ctx.lineTo(pb.px,pb.py);
+      ctx.strokeStyle='rgba(0,198,255,0.2)'; ctx.lineWidth=1; ctx.stroke();
+    });
+    
+    // inner connections
+    for(let i=8;i<projected.length;i++){
+      for(let j=0;j<8;j++){
+        if(Math.random()<0.003){
+          ctx.beginPath(); ctx.moveTo(projected[i].px,projected[i].py);
+          ctx.lineTo(projected[j].px,projected[j].py);
+          ctx.strokeStyle='rgba(123,47,247,0.15)'; ctx.lineWidth=0.7; ctx.stroke();
+        }
+      }
+    }
+    
+    // nodes
+    projected.forEach((p,i)=>{
+      const isCenter = p.type==='inner';
+      const r = isCenter ? 3 : 5;
+      const grd = ctx.createRadialGradient(p.px,p.py,0,p.px,p.py,r*4);
+      if(!isCenter){
+        grd.addColorStop(0,'rgba(0,198,255,0.9)');
+        grd.addColorStop(1,'transparent');
+      } else {
+        grd.addColorStop(0,'rgba(123,47,247,0.7)');
+        grd.addColorStop(1,'transparent');
+      }
+      ctx.beginPath(); ctx.arc(p.px,p.py,r*4,0,Math.PI*2);
+      ctx.fillStyle=grd; ctx.fill();
+      ctx.beginPath(); ctx.arc(p.px,p.py,r,0,Math.PI*2);
+      ctx.fillStyle=isCenter?'rgba(123,47,247,1)':'rgba(0,198,255,1)'; ctx.fill();
+    });
+    
+    // scanning line
+    const scanY = H/2 + Math.sin(t*2)*H*0.3;
+    ctx.beginPath(); ctx.moveTo(0,scanY); ctx.lineTo(W,scanY);
+    ctx.strokeStyle='rgba(0,198,255,0.08)'; ctx.lineWidth=2; ctx.stroke();
+    
+    requestAnimationFrame(drawHIW);
+  }
+  drawHIW();
+})();
+
+// ─── PRODUCTS GRID ───────────────────────────────────────────────────────────
+function renderProducts(cat='all'){
+  const grid = document.getElementById('products-grid');
+  const filtered = cat==='all' ? PRODUCTS : PRODUCTS.filter(p=>p.category===cat);
+  grid.innerHTML = filtered.map(p=>`
+    <div class="product-card" data-category="${p.category}">
+      <div class="shine-overlay"></div>
+      <div class="product-card-img">${p.emoji}
+        <span class="product-badge ${p.badge}">${p.label}</span>
+      </div>
+      <div class="product-card-body">
+        <h4>${p.name}</h4>
+        <p>${p.category.charAt(0).toUpperCase()+p.category.slice(1)} · AI Analyzed</p>
+      </div>
+    </div>
+  `).join('');
+  // 3D tilt effect
+  grid.querySelectorAll('.product-card').forEach(card=>{
+    card.addEventListener('mousemove',e=>{
+      const r=card.getBoundingClientRect();
+      const x=(e.clientX-r.left)/r.width-0.5;
+      const y=(e.clientY-r.top)/r.height-0.5;
+      card.style.transform=`perspective(800px) rotateY(${x*18}deg) rotateX(${-y*18}deg) translateY(-8px)`;
+    });
+    card.addEventListener('mouseleave',()=>{ card.style.transform=''; });
+  });
+}
+renderProducts();
+
+document.getElementById('products-filter').addEventListener('click',e=>{
+  const btn=e.target.closest('.filter-btn');
+  if(!btn) return;
+  document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  renderProducts(btn.dataset.cat);
+});
+
+// ─── 3D TILT ON PATH CARDS ──────────────────────────────────────────────────
+document.querySelectorAll('.path-card,.stat-card,.dash-stat').forEach(card=>{
+  card.addEventListener('mousemove',e=>{
+    const r=card.getBoundingClientRect();
+    const x=(e.clientX-r.left)/r.width-0.5;
+    const y=(e.clientY-r.top)/r.height-0.5;
+    card.style.transform=`perspective(600px) rotateY(${x*14}deg) rotateX(${-y*14}deg) translateY(-6px) scale(1.02)`;
+  });
+  card.addEventListener('mouseleave',()=>{ card.style.transform=''; });
+});
+
+// ─── MAGNETIC BUTTONS ────────────────────────────────────────────────────────
+document.querySelectorAll('.btn-primary,.btn-secondary').forEach(btn=>{
+  btn.addEventListener('mousemove',e=>{
+    const r=btn.getBoundingClientRect();
+    const x=e.clientX-r.left-r.width/2;
+    const y=e.clientY-r.top-r.height/2;
+    btn.style.transform=`translate(${x*0.25}px,${y*0.25}px) translateY(-2px)`;
+  });
+  btn.addEventListener('mouseleave',()=>{ btn.style.transform=''; });
+});
+
+// ─── FORM LOGIC ──────────────────────────────────────────────────────────────
+let currentStep=1;
+const formData={};
+
+document.getElementById('product-category').addEventListener('change',function(){
+  const sel=document.getElementById('product-name');
+  const names=PRODUCT_NAMES[this.value]||[];
+  sel.disabled=!names.length;
+  sel.innerHTML=names.length ? names.map(n=>`<option>${n}</option>`).join('') : '<option>Select Category First</option>';
+});
+
+function setStep(n){
+  document.getElementById('step-'+currentStep).classList.remove('active');
+  document.getElementById('prog-'+currentStep).classList.remove('active');
+  document.getElementById('prog-'+currentStep).classList.add('done');
+  currentStep=n;
+  document.getElementById('step-'+currentStep).classList.add('active');
+  document.getElementById('prog-'+currentStep).classList.add('active');
+  if(n===4) buildReview();
+}
+
+document.querySelectorAll('.next-btn').forEach(b=>b.addEventListener('click',()=>{ if(currentStep<4) setStep(parseInt(b.dataset.to)); }));
+document.querySelectorAll('.back-btn').forEach(b=>b.addEventListener('click',()=>{ setStep(parseInt(b.dataset.to)); }));
+
+// Upload
+const zone=document.getElementById('upload-zone');
+const fileInput=document.getElementById('file-input');
+const previews=document.getElementById('upload-previews');
+let uploadedFiles=[];
+zone.addEventListener('click',()=>fileInput.click());
+zone.addEventListener('dragover',e=>{ e.preventDefault(); zone.classList.add('drag-over'); });
+zone.addEventListener('dragleave',()=>zone.classList.remove('drag-over'));
+zone.addEventListener('drop',e=>{ e.preventDefault(); zone.classList.remove('drag-over'); handleFiles(e.dataTransfer.files); });
+fileInput.addEventListener('change',e=>handleFiles(e.target.files));
+function handleFiles(files){
+  [...files].forEach(f=>{
+    uploadedFiles.push(f);
+    const reader=new FileReader();
+    reader.onload=e=>{ const img=document.createElement('img'); img.src=e.target.result; previews.appendChild(img); };
+    reader.readAsDataURL(f);
+  });
+}
+
+function buildReview(){
+  const box=document.getElementById('review-box');
+  const rows=[
+    ['Order ID', document.getElementById('order-id').value||'—'],
+    ['Category', document.getElementById('product-category').value||'—'],
+    ['Product', document.getElementById('product-name').value||'—'],
+    ['Damage Type', document.getElementById('damage-type').value||'—'],
+    ['Photos', uploadedFiles.length+' uploaded'],
+    ['Description', (document.getElementById('damage-desc').value||'None').slice(0,60)],
+  ];
+  box.innerHTML=rows.map(([k,v])=>`<div class="review-row"><span>${k}</span><span>${v}</span></div>`).join('');
+}
+
+document.getElementById('submit-btn').addEventListener('click',function(){
+  this.textContent='🔄 Analyzing...';
+  this.disabled=true;
+  setTimeout(()=>{
+    const decisions=['approved','review','rejected'];
+    const d=decisions[Math.floor(Math.random()*decisions.length)];
+    const msgs={
+      approved:{icon:'✅',title:'Return Approved!',desc:'AI verified the damage. Refund will be processed in 2–3 business days.',color:'#00e696'},
+      review:{icon:'⚠️',title:'Under Review',desc:'A specialist will review your case within 24 hours.',color:'#ffb900'},
+      rejected:{icon:'❌',title:'Return Rejected',desc:'This return does not meet our policy criteria.',color:'var(--accent3)'},
+    };
+    const m=msgs[d];
+    const id='RTN-'+Date.now().toString().slice(-6);
+    // add to returns
+    returns.unshift({
+      id:document.getElementById('order-id').value||id,
+      product:document.getElementById('product-name').value||'Unknown',
+      category:document.getElementById('product-category').value||'—',
+      date:new Date().toISOString().slice(0,10),
+      status:d,
+      decision:d==='approved'?'Auto-Approved':d==='review'?'Pending Review':'Policy Violation'
+    });
+    updateDashboard();
+    document.querySelectorAll('.form-step').forEach(s=>s.classList.remove('active'));
+    const res=document.getElementById('form-result');
+    res.style.display='block';
+    res.innerHTML=`<div class="result-card">
+      <div class="result-icon">${m.icon}</div>
+      <h3 style="color:${m.color}">${m.title}</h3>
+      <p>${m.desc}</p>
+      <div class="result-id">ID: ${id}</div>
+      <div style="margin-top:24px"><button class="btn-secondary" onclick="resetForm()">Submit Another</button></div>
+    </div>`;
+  },2200);
+});
+
+function resetForm(){
+  currentStep=1;
+  uploadedFiles=[];
+  document.getElementById('upload-previews').innerHTML='';
+  document.querySelectorAll('.prog-step').forEach((s,i)=>{ s.classList.toggle('active',i===0); s.classList.remove('done'); });
+  document.getElementById('form-result').style.display='none';
+  document.getElementById('step-1').classList.add('active');
+  document.getElementById('submit-btn').textContent='🚀 Submit for AI Analysis';
+  document.getElementById('submit-btn').disabled=false;
+}
+
+// ─── DASHBOARD ───────────────────────────────────────────────────────────────
+let dashFilter='all';
+function updateDashboard(){
+  const stats={total:returns.length,approved:0,review:0,rejected:0};
+  returns.forEach(r=>stats[r.status]++);
+  function countUp(id,val){
+    const el=document.getElementById(id);
+    let cur=0;
+    const step=Math.max(1,Math.floor(val/30));
+    const iv=setInterval(()=>{ cur=Math.min(cur+step,val); el.textContent=cur; if(cur>=val)clearInterval(iv); },30);
+  }
+  countUp('stat-total',stats.total);
+  countUp('stat-approved',stats.approved);
+  countUp('stat-review',stats.review);
+  countUp('stat-rejected',stats.rejected);
+  
+  const filtered=dashFilter==='all'?returns:returns.filter(r=>r.status===dashFilter);
+  document.getElementById('table-body').innerHTML=filtered.map(r=>`
+    <tr>
+      <td><code style="color:var(--accent);font-size:0.8rem">${r.id}</code></td>
+      <td>${r.product}</td>
+      <td><span style="text-transform:capitalize">${r.category}</span></td>
+      <td>${r.date}</td>
+      <td><span class="status-pill status-${r.status}">${r.status.charAt(0).toUpperCase()+r.status.slice(1)}</span></td>
+      <td style="color:var(--muted);font-size:0.82rem">${r.decision}</td>
+    </tr>
+  `).join('');
+}
+updateDashboard();
+
+document.getElementById('dash-filters').addEventListener('click',e=>{
+  const btn=e.target.closest('button');
+  if(!btn) return;
+  document.querySelectorAll('#dash-filters button').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  dashFilter=btn.dataset.f;
+  updateDashboard();
+});
+
+// ─── SCROLL REVEAL ───────────────────────────────────────────────────────────
+const revealObs=new IntersectionObserver(entries=>{
+  entries.forEach(e=>{ if(e.isIntersecting){ e.target.classList.add('visible'); revealObs.unobserve(e.target); } });
+},{threshold:0.15});
+document.querySelectorAll('.reveal,.step-item,.path-card,.dash-stat,.stat-card').forEach(el=>{
+  el.classList.add('reveal'); revealObs.observe(el);
+});
+
+// ─── GSAP SCROLL ANIMATIONS ──────────────────────────────────────────────────
+gsap.registerPlugin(ScrollTrigger);
+gsap.from('#products .section-title,#products .section-sub,#products .section-label',{
+  opacity:0, y:40, stagger:0.15, duration:0.9, ease:'power3.out',
+  scrollTrigger:{ trigger:'#products', start:'top 80%' }
+});
+gsap.from('.products-grid',{
+  opacity:0, y:60, duration:1, ease:'power3.out',
+  scrollTrigger:{ trigger:'#products', start:'top 70%' }
+});
+gsap.from('.hiw-grid',{
+  opacity:0, x:-60, duration:1, ease:'power3.out',
+  scrollTrigger:{ trigger:'#how-it-works', start:'top 80%' }
+});
+gsap.from('.dash-stats',{
+  opacity:0, y:40, stagger:0.1, duration:0.8, ease:'power3.out',
+  scrollTrigger:{ trigger:'#dashboard', start:'top 80%' }
+});
+gsap.from('.table-wrap',{
+  opacity:0, y:50, duration:1, ease:'power3.out',
+  scrollTrigger:{ trigger:'#dashboard', start:'top 70%' }
+});
+gsap.from('.form-card',{
+  opacity:0, scale:0.96, duration:0.9, ease:'power3.out',
+  scrollTrigger:{ trigger:'#return-form', start:'top 80%' }
+});
+
+// ─── STEP ITEM HOVER GLOW RIPPLE ─────────────────────────────────────────────
+document.querySelectorAll('.step-item').forEach(item=>{
+  item.addEventListener('mouseenter',function(){
+    const num=this.querySelector('.step-num');
+    gsap.to(num,{scale:1.2,duration:0.3,ease:'back.out(2)'});
+  });
+  item.addEventListener('mouseleave',function(){
+    const num=this.querySelector('.step-num');
+    gsap.to(num,{scale:1,duration:0.3,ease:'power2.out'});
+  });
+});
+</script>
+</body>
+</html>
