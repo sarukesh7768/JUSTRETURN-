@@ -1,7 +1,7 @@
 # 🛡️ JustReturn AI 
 > **Automated E-Commerce Return Processing with AI-Powered Fraud Detection**
 
-to check the website " https://agent-6aad15475ecec80e02--glowing-baklava-a5f9d9.netlify.app "
+to check the website " https://glowing-baklava-a5f9d9.netlify.app/ "
 
 > *Built for Hackathon 2025*
 
